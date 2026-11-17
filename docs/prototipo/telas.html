@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; background: #ffffff; color: #1a2433; }
+  .tela { width: 400px; min-height: 0; background: #f4f7fb; display: none; flex-direction: column; }
+  .tela.ativa { display: flex; }
+  header { background: #1e3a5f; color: #fff; padding: 22px 20px 20px; }
+  header .marca { font-size: 15px; opacity: .92; }
+  header h1 { font-size: 25px; margin: 6px 0 8px; }
+  header p { font-size: 16px; }
+  main { padding: 18px 20px; flex: 1; }
+  h2 { font-size: 20px; margin: 18px 0 12px; }
+  label { display: block; font-size: 16px; font-weight: bold; margin: 16px 0 6px; }
+  input, select { width: 100%; min-height: 48px; font-size: 17px; padding: 10px 12px; border: 2px solid #5a6b80; border-radius: 8px; background: #fff; color: #1a2433; }
+  .btn { display: block; width: 100%; min-height: 52px; border-radius: 10px; font-size: 18px; font-weight: bold; text-align: center; padding: 14px; border: 2px solid #1e3a5f; }
+  .btn.primario { background: #1e3a5f; color: #fff; }
+  .btn.secundario { background: #fff; color: #1e3a5f; margin-top: 12px; }
+  .erro { background: #fdecec; border: 2px solid #b3261e; color: #8c1d18; border-radius: 8px; padding: 12px; font-size: 16px; margin-top: 16px; }
+  .ajuda { font-size: 14px; color: #44546a; margin-top: 18px; line-height: 1.4; }
+  .offline { background: #fff4d6; border-bottom: 2px solid #9a6b00; color: #5c4000; padding: 10px 20px; font-size: 15px; font-weight: bold; }
+  .crianca { background: #fff; border: 1px solid #d3dbe6; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+  .crianca .topo { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .crianca .nome { font-size: 18px; font-weight: bold; }
+  .estado { font-size: 14px; font-weight: bold; }
+  .estado.p { color: #146c2e; } .estado.f { color: #b3261e; } .estado.n { color: #5a6b80; }
+  .par { display: flex; gap: 10px; }
+  .par .op { flex: 1; min-height: 48px; border-radius: 8px; font-size: 17px; font-weight: bold; display: flex; align-items: center; justify-content: center; border: 2px solid #5a6b80; background: #fff; color: #1a2433; }
+  .op.presente.sel { background: #146c2e; border-color: #146c2e; color: #fff; }
+  .op.falta.sel { background: #b3261e; border-color: #b3261e; color: #fff; }
+  .rodape { background: #fff; border-top: 2px solid #d3dbe6; padding: 12px 20px 16px; }
+  .contador { font-size: 16px; font-weight: bold; margin-bottom: 10px; text-align: center; }
+  .rodape .btn.secundario { margin-top: 10px; min-height: 48px; padding: 12px; }
+  .filtros { display: flex; gap: 10px; }
+  .filtros > div { flex: 1; }
+  .filtros label { margin-top: 4px; }
+  .alerta { background: #fff4d6; border: 2px solid #9a6b00; border-radius: 10px; padding: 14px; margin-top: 16px; }
+  .alerta h3 { font-size: 18px; color: #5c4000; margin-bottom: 8px; }
+  .alerta li { list-style: none; font-size: 16px; padding: 8px 0; border-top: 1px solid #e8d6a6; }
+  .alerta li:first-of-type { border-top: none; }
+  .alerta .dica { font-size: 14px; color: #5c4000; margin-top: 6px; }
+  table { width: 100%; border-collapse: collapse; background: #fff; font-size: 16px; margin-top: 8px; }
+  th, td { padding: 10px 8px; border-bottom: 1px solid #d3dbe6; text-align: left; }
+  th { background: #e6ecf4; font-size: 15px; }
+  td.n, th.n { text-align: center; }
+  tr.risco td { background: #fff8e6; font-weight: bold; }
+  .legenda { font-size: 13px; color: #44546a; margin-top: 8px; }
+  .usuario { font-size: 16px; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<section class="tela" id="login">
+  <header>
+    <div class="marca">PresençaCirco · Circo Social Grajaú</div>
+    <h1>Entrar</h1>
+    <p>Acesse com seu usuário e senha</p>
+  </header>
+  <main>
+    <label for="u">Usuário</label>
+    <input id="u" value="educadora.teste">
+    <label for="s">Senha</label>
+    <input id="s" type="password" value="12345678">
+    <div class="erro" role="alert">✗ Usuário ou senha inválidos. Tente de novo.</div>
+    <div style="height:18px"></div>
+    <button class="btn primario">Entrar</button>
+    <p class="ajuda">Esqueceu a senha? Fale com a coordenação do Circo Social.<br>Por segurança, após 5 tentativas erradas o acesso fica bloqueado por 15 minutos.</p>
+  </main>
+</section>
+
+<!-- CHAMADA -->
+<section class="tela" id="chamada">
+  <header>
+    <div class="marca">PresençaCirco · Circo Social Grajaú</div>
+    <h1>Chamada – Turma Manhã</h1>
+    <p>Oficina de 21/10/2026</p>
+  </header>
+  <div class="offline">⚠ Sem internet: a chamada será salva no aparelho e enviada depois.</div>
+  <main>
+    <div class="crianca"><div class="topo"><span class="nome">Ana</span><span class="estado p">Presente ✓</span></div>
+      <div class="par"><div class="op presente sel">Presente ✓</div><div class="op falta">Falta ✗</div></div></div>
+    <div class="crianca"><div class="topo"><span class="nome">Bruno</span><span class="estado p">Presente ✓</span></div>
+      <div class="par"><div class="op presente sel">Presente ✓</div><div class="op falta">Falta ✗</div></div></div>
+    <div class="crianca"><div class="topo"><span class="nome">Carla</span><span class="estado f">Falta ✗</span></div>
+      <div class="par"><div class="op presente">Presente ✓</div><div class="op falta sel">Falta ✗</div></div></div>
+    <div class="crianca"><div class="topo"><span class="nome">Davi</span><span class="estado p">Presente ✓</span></div>
+      <div class="par"><div class="op presente sel">Presente ✓</div><div class="op falta">Falta ✗</div></div></div>
+    <div class="crianca"><div class="topo"><span class="nome">Elisa</span><span class="estado n">Não marcada</span></div>
+      <div class="par"><div class="op presente">Presente ✓</div><div class="op falta">Falta ✗</div></div></div>
+  </main>
+  <div class="rodape">
+    <div class="contador">4 de 30 marcadas</div>
+    <button class="btn primario">Salvar chamada</button>
+    <button class="btn secundario">Voltar ao menu</button>
+  </div>
+</section>
+
+<!-- ALERTAS E RELATÓRIO -->
+<section class="tela" id="relatorio">
+  <header>
+    <div class="marca">PresençaCirco · Circo Social Grajaú</div>
+    <h1>Alertas e relatório</h1>
+    <p>Acompanhe faltas e frequência do mês</p>
+  </header>
+  <main>
+    <div class="usuario">Usuária: coordenacao.teste (coordenação)</div>
+    <div class="filtros">
+      <div><label for="t">Turma</label><select id="t"><option>Turma Manhã</option></select></div>
+      <div><label for="m">Mês</label><select id="m"><option>Outubro/2026</option></select></div>
+    </div>
+    <div class="alerta" role="region" aria-label="Alertas de faltas">
+      <h3>⚠ Atenção: 3 faltas seguidas ou mais</h3>
+      <ul>
+        <li>⚠ <strong>Carla</strong> – 3 faltas seguidas</li>
+        <li>⚠ <strong>Felipe</strong> – 4 faltas seguidas</li>
+      </ul>
+      <p class="dica">Sugestão: entrar em contato com a família.</p>
+    </div>
+    <h2>Relatório mensal – 9 oficinas</h2>
+    <table>
+      <thead><tr><th>Criança</th><th class="n">Presenças</th><th class="n">Faltas</th></tr></thead>
+      <tbody>
+        <tr><td>Ana</td><td class="n">9</td><td class="n">0</td></tr>
+        <tr><td>Bruno</td><td class="n">8</td><td class="n">1</td></tr>
+        <tr class="risco"><td>⚠ Carla</td><td class="n">5</td><td class="n">4</td></tr>
+        <tr><td>Davi</td><td class="n">7</td><td class="n">2</td></tr>
+        <tr><td>Elisa</td><td class="n">9</td><td class="n">0</td></tr>
+        <tr class="risco"><td>⚠ Felipe</td><td class="n">4</td><td class="n">5</td></tr>
+      </tbody>
+    </table>
+    <p class="legenda">Mostrando 6 de 30 crianças. ⚠ = alerta de faltas seguidas.</p>
+    <div style="height:14px"></div>
+    <button class="btn primario">Baixar relatório</button>
+    <button class="btn secundario">Voltar ao menu</button>
+  </main>
+</section>
+
+<script>
+  const alvo = (location.hash || '#login').slice(1);
+  document.getElementById(alvo).classList.add('ativa');
+</script>
+</body>
+</html>
