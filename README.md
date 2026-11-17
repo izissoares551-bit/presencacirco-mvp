@@ -1,5 +1,10 @@
 # PresençaCirco – MVP
 
+[![Testes automatizados](https://github.com/izissoares551-bit/presencacirco-mvp/actions/workflows/testes.yml/badge.svg)](https://github.com/izissoares551-bit/presencacirco-mvp/actions/workflows/testes.yml)
+[![Monitoramento](https://github.com/izissoares551-bit/presencacirco-mvp/actions/workflows/monitoramento.yml/badge.svg)](https://github.com/izissoares551-bit/presencacirco-mvp/actions/workflows/monitoramento.yml)
+
+**Aplicação no ar:** https://presencacirco.onrender.com
+
 Sistema web (PWA) de **chamada de presença e relatório de frequência** para o **Circo Social Grajaú** (CEDECA Interlagos, São Paulo).
 
 Projeto de Software – Curso Superior de Tecnologia em Análise e Desenvolvimento de Sistemas (Cruzeiro do Sul, EAD).

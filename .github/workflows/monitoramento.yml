@@ -1,0 +1,63 @@
+name: Monitoramento (disponibilidade)
+
+# Verifica a cada 15 minutos se o PresençaCirco está no ar.
+# Se o site cair, a execução fica vermelha (DOWN) e o GitHub avisa por e-mail.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+env:
+  URL_PRODUCAO: https://presencacirco.onrender.com
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verificar saúde da aplicação (/saude/)
+        run: |
+          # O plano gratuito "dorme" sem uso: tenta por até ~3 minutos antes de declarar queda.
+          for tentativa in 1 2 3 4 5 6; do
+            inicio=$(date +%s.%N)
+            codigo=$(curl -s -o resposta.json -w "%{http_code}" --max-time 60 "$URL_PRODUCAO/saude/" || echo "000")
+            tempo=$(echo "$(date +%s.%N) - $inicio" | bc)
+            echo "Tentativa $tentativa: HTTP $codigo em ${tempo}s"
+            if [ "$codigo" = "200" ] && grep -q '"status": "ok"' resposta.json; then
+              echo "STATUS=UP" >> "$GITHUB_ENV"
+              echo "TEMPO=$tempo" >> "$GITHUB_ENV"
+              echo "CODIGO=$codigo" >> "$GITHUB_ENV"
+              cat resposta.json; echo
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "STATUS=DOWN" >> "$GITHUB_ENV"
+          echo "CODIGO=$codigo" >> "$GITHUB_ENV"
+          echo "::error title=Site fora do ar (DOWN)::$URL_PRODUCAO/saude/ não respondeu corretamente (último HTTP $codigo)."
+          exit 1
+
+      - name: Verificar tela de login (/entrar/)
+        run: |
+          codigo=$(curl -s -o /dev/null -w "%{http_code}" --max-time 60 "$URL_PRODUCAO/entrar/")
+          echo "Tela de login: HTTP $codigo"
+          if [ "$codigo" != "200" ]; then
+            echo "::error title=Tela de login com falha::$URL_PRODUCAO/entrar/ respondeu HTTP $codigo."
+            exit 1
+          fi
+
+      - name: Resumo do monitoramento
+        if: always()
+        run: |
+          if [ "$STATUS" = "UP" ]; then icone="🟢 UP"; else icone="🔴 DOWN"; fi
+          {
+            echo "## Monitoramento do PresençaCirco"
+            echo ""
+            echo "| Item | Resultado |"
+            echo "|---|---|"
+            echo "| URL verificada | $URL_PRODUCAO/saude/ |"
+            echo "| Status | **$icone** |"
+            echo "| Código HTTP | ${CODIGO:-sem resposta} |"
+            echo "| Tempo de resposta | ${TEMPO:-–} s |"
+            echo "| Verificado em (UTC) | $(date -u '+%d/%m/%Y %H:%M') |"
+          } >> "$GITHUB_STEP_SUMMARY"
