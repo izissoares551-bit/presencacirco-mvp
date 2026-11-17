@@ -40,3 +40,4 @@ td.n, th.n { text-align: center; }
 tr.risco td { background: #fff8e6; font-weight: bold; }
 .filtros { display: flex; gap: 10px; align-items: flex-end; }
 .filtros > div { flex: 1; }
+.visualmente-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }

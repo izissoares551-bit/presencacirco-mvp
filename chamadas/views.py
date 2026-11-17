@@ -6,11 +6,12 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from . import regras
 from .models import Turma
-from .perfis import eh_coordenacao
+from .perfis import coordenacao_obrigatoria, eh_coordenacao
 
 
 @login_required
@@ -40,10 +41,53 @@ def chamada(request, turma_id):
             messages.error(request, " ".join(erro.messages))
         else:
             messages.success(request, "Chamada salva.")
-            return redirect("menu")
+            return redirect(f"{reverse('alertas')}?turma={turma.id}")
 
     return render(
         request,
         "chamadas/chamada.html",
         {"turma": turma, "criancas": criancas, "hoje": hoje, "marcacoes": marcacoes},
+    )
+
+
+def _turma_escolhida(request):
+    turmas = Turma.objects.filter(ativa=True)
+    turma = turmas.filter(pk=request.GET.get("turma") or 0).first() or turmas.first()
+    return turmas, turma
+
+
+@login_required
+def alertas(request):
+    """Crianças com faltas seguidas (RF02). Educador e coordenação podem ver."""
+    turmas, turma = _turma_escolhida(request)
+    em_alerta = regras.criancas_em_alerta(turma) if turma else []
+    return render(
+        request,
+        "chamadas/alertas.html",
+        {
+            "turmas": turmas,
+            "turma": turma,
+            "em_alerta": em_alerta,
+            "limite": regras.LIMITE_FALTAS_SEGUIDAS,
+            "coordenacao": eh_coordenacao(request.user),
+        },
+    )
+
+
+@coordenacao_obrigatoria
+def relatorio(request):
+    """Relatório mensal de frequência por turma (RF03). Só a coordenação acessa."""
+    turmas, turma = _turma_escolhida(request)
+    hoje = timezone.localdate()
+    try:
+        ano, mes = (int(x) for x in request.GET.get("mes", f"{hoje:%Y-%m}").split("-"))
+        date(ano, mes, 1)
+    except ValueError:
+        ano, mes = hoje.year, hoje.month
+    dados = regras.relatorio_mensal(turma, ano, mes) if turma else None
+    alerta_ids = {c.id for c, _ in regras.criancas_em_alerta(turma)} if turma else set()
+    return render(
+        request,
+        "chamadas/relatorio.html",
+        {"turmas": turmas, "turma": turma, "mes": f"{ano:04d}-{mes:02d}", "dados": dados, "alerta_ids": alerta_ids},
     )

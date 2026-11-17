@@ -1,0 +1,40 @@
+{% extends "chamadas/base.html" %}
+{% block titulo %}Relatório mensal – PresençaCirco{% endblock %}
+{% block cabecalho %}Relatório mensal{% endblock %}
+{% block subtitulo %}Presenças e faltas por criança{% endblock %}
+{% block conteudo %}
+<form method="get" class="filtros">
+  <div>
+    <label for="turma">Turma</label>
+    <select name="turma" id="turma">
+      {% for t in turmas %}<option value="{{ t.id }}" {% if t == turma %}selected{% endif %}>{{ t.nome }}</option>{% endfor %}
+    </select>
+  </div>
+  <div>
+    <label for="mes">Mês</label>
+    <input type="month" name="mes" id="mes" value="{{ mes }}">
+  </div>
+  <div><button type="submit" class="btn secundario">Ver</button></div>
+</form>
+
+{% if dados %}
+  <h2>{{ turma.nome }} – {{ dados.total_chamadas }} oficina(s) no mês</h2>
+  <table>
+    <caption class="visualmente-oculto">Relatório de frequência</caption>
+    <thead><tr><th scope="col">Criança</th><th scope="col" class="n">Presenças</th><th scope="col" class="n">Faltas</th></tr></thead>
+    <tbody>
+      {% for crianca, linha in dados.linhas.items %}
+        <tr {% if crianca.id in alerta_ids %}class="risco"{% endif %}>
+          <td>{% if crianca.id in alerta_ids %}⚠ {% endif %}{{ crianca.nome }}</td>
+          <td class="n">{{ linha.presencas }}</td>
+          <td class="n">{{ linha.faltas }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p>⚠ = alerta de faltas seguidas.</p>
+{% else %}
+  <p>Nenhuma turma ativa cadastrada.</p>
+{% endif %}
+<a class="btn secundario" href="{% url 'menu' %}">Voltar ao menu</a>
+{% endblock %}

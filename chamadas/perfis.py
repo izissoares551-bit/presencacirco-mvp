@@ -1,6 +1,9 @@
 """Perfis de acesso: educador e coordenação (grupos do Django)."""
 
-from django.contrib.auth.decorators import user_passes_test
+from functools import wraps
+
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 GRUPO_EDUCADOR = "educador"
 GRUPO_COORDENACAO = "coordenacao"
@@ -13,5 +16,12 @@ def eh_coordenacao(usuario):
 
 
 def coordenacao_obrigatoria(view):
-    """Bloqueia a view para quem não é da coordenação (verificado no servidor)."""
-    return user_passes_test(eh_coordenacao, login_url=None)(view)
+    """Exige login e perfil de coordenação, verificado no servidor (acesso negado = 403)."""
+
+    @wraps(view)
+    def _view(request, *args, **kwargs):
+        if not eh_coordenacao(request.user):
+            raise PermissionDenied
+        return view(request, *args, **kwargs)
+
+    return login_required(_view)

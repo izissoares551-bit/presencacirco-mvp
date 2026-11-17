@@ -12,6 +12,9 @@
 {% empty %}
   <p>Nenhuma turma ativa cadastrada.</p>
 {% endfor %}
+<h2>Consultas</h2>
+<a class="btn secundario" href="{% url 'alertas' %}">⚠ Alertas de faltas</a>
+{% if coordenacao %}<a class="btn secundario" href="{% url 'relatorio' %}">Relatório mensal</a>{% endif %}
 <form method="post" action="{% url 'logout' %}">
   {% csrf_token %}
   <button type="submit" class="btn secundario">Sair</button>

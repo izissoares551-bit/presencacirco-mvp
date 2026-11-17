@@ -1,0 +1,32 @@
+{% extends "chamadas/base.html" %}
+{% block titulo %}Alertas – PresençaCirco{% endblock %}
+{% block cabecalho %}Alertas de faltas{% endblock %}
+{% block subtitulo %}Crianças que precisam de contato com a família{% endblock %}
+{% block conteudo %}
+<form method="get" class="filtros">
+  <div>
+    <label for="turma">Turma</label>
+    <select name="turma" id="turma">
+      {% for t in turmas %}<option value="{{ t.id }}" {% if t == turma %}selected{% endif %}>{{ t.nome }}</option>{% endfor %}
+    </select>
+  </div>
+  <div><button type="submit" class="btn secundario">Ver</button></div>
+</form>
+
+<section class="alerta" aria-label="Alertas de faltas seguidas">
+  <h2>⚠ Atenção: {{ limite }} faltas seguidas ou mais</h2>
+  {% if em_alerta %}
+    <ul>
+      {% for crianca, total in em_alerta %}
+        <li>⚠ <strong>{{ crianca.nome }}</strong> – {{ total }} faltas seguidas{% if coordenacao %} · Responsável: {{ crianca.telefone_responsavel }}{% endif %}</li>
+      {% endfor %}
+    </ul>
+    <p>Sugestão: entrar em contato com a família.</p>
+  {% else %}
+    <p>✓ Nenhuma criança com {{ limite }} faltas seguidas nesta turma.</p>
+  {% endif %}
+</section>
+
+{% if coordenacao %}<a class="btn primario" href="{% url 'relatorio' %}?turma={{ turma.id }}">Ver relatório mensal</a>{% endif %}
+<a class="btn secundario" href="{% url 'menu' %}">Voltar ao menu</a>
+{% endblock %}
