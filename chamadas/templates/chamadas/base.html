@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block titulo %}PresençaCirco{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'chamadas/estilo.css' %}">
+  <script>
+    // Aplica as preferências de acessibilidade antes de desenhar a tela (evita "piscar").
+    try {
+      if (localStorage.getItem("letra-grande") === "1") document.documentElement.classList.add("letra-grande");
+      if (localStorage.getItem("alto-contraste") === "1") document.documentElement.classList.add("alto-contraste");
+    } catch (e) {}
+  </script>
 </head>
 <body>
   <header class="topo">
@@ -12,6 +19,10 @@
     <h1>{% block cabecalho %}PresençaCirco{% endblock %}</h1>
     <p>{% block subtitulo %}{% endblock %}</p>
   </header>
+  <nav class="acessibilidade" aria-label="Acessibilidade">
+    <button type="button" data-preferencia="letra-grande" aria-pressed="false">A+ Letra maior</button>
+    <button type="button" data-preferencia="alto-contraste" aria-pressed="false">Alto contraste</button>
+  </nav>
   <main>
     {% for mensagem in messages %}
       <div class="msg {{ mensagem.tags }}" role="{% if mensagem.tags == 'error' %}alert{% else %}status{% endif %}">
@@ -20,5 +31,18 @@
     {% endfor %}
     {% block conteudo %}{% endblock %}
   </main>
+  <script>
+    // Botões de acessibilidade (RNF04): ligam/desligam e lembram a escolha neste aparelho.
+    document.querySelectorAll("[data-preferencia]").forEach(function (botao) {
+      var classe = botao.getAttribute("data-preferencia");
+      var raiz = document.documentElement;
+      botao.setAttribute("aria-pressed", raiz.classList.contains(classe) ? "true" : "false");
+      botao.addEventListener("click", function () {
+        var ligado = raiz.classList.toggle(classe);
+        botao.setAttribute("aria-pressed", ligado ? "true" : "false");
+        try { localStorage.setItem(classe, ligado ? "1" : "0"); } catch (e) {}
+      });
+    });
+  </script>
 </body>
 </html>

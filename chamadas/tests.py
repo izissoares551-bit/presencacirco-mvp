@@ -207,3 +207,14 @@ class RevisaoDesempenhoESegurancaTeste(TestCase):
             telefone_responsavel="11987654321", turma=self.turma,
         )
         crianca.full_clean()
+
+
+class AcessibilidadeTeste(TestCase):
+    """RNF04: botões de letra maior e alto contraste presentes em todas as telas."""
+
+    def test_botoes_de_acessibilidade_na_tela_de_login(self):
+        resposta = self.client.get("/entrar/")
+        self.assertContains(resposta, 'data-preferencia="letra-grande"')
+        self.assertContains(resposta, 'data-preferencia="alto-contraste"')
+        self.assertContains(resposta, 'aria-pressed="false"', count=2)
+        self.assertContains(resposta, '<label for="id_username">Usuário</label>', html=True)
