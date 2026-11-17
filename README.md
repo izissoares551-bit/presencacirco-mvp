@@ -50,8 +50,12 @@ presencacirco-mvp/
 ├── chamadas/            # app principal
 │   ├── models.py        # Turma, Crianca, Chamada, Presenca
 │   ├── regras.py        # faltas consecutivas e relatório mensal
+│   ├── views.py         # telas (interface)
+│   ├── perfis.py        # perfis educador e coordenação
+│   ├── templates/       # HTML das telas
+│   ├── static/          # CSS
 │   ├── admin.py         # painel para carga inicial de turmas e crianças
-│   ├── tests.py         # testes das regras
+│   ├── tests.py         # testes das regras e das telas
 │   └── migrations/
 ├── config/              # configurações do projeto Django
 ├── docs/                # protótipo das telas
@@ -86,13 +90,30 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Acesse http://127.0.0.1:8000/admin para cadastrar turmas e crianças.
+1. Acesse http://127.0.0.1:8000/admin com o superusuário e cadastre turmas e crianças (dados fictícios).
+2. Em **Usuários**, crie os usuários e coloque cada um no grupo `educador` ou `coordenacao`.
+3. Acesse http://127.0.0.1:8000 e entre com um desses usuários.
+
+## Telas
+
+| Endereço | Tela | Quem acessa |
+|---|---|---|
+| `/entrar/` | Login | Todos |
+| `/` | Menu inicial com as turmas | Educador e coordenação |
+| `/chamada/<id>/` | Chamada da turma (RF01) | Educador e coordenação |
+| `/alertas/` | Crianças com 3 ou mais faltas seguidas (RF02) | Educador e coordenação (telefone do responsável só para a coordenação) |
+| `/relatorio/` | Relatório mensal por turma (RF03) | Só coordenação (educador recebe "Acesso negado") |
+| `/admin/` | Cadastro de turmas, crianças e usuários | Coordenação |
+
+O protótipo das telas está em [`docs/prototipo`](docs/prototipo).
 
 ### Testes
 
 ```bash
 python manage.py test
 ```
+
+São 16 testes automáticos: regras de faltas seguidas e relatório, validação da chamada (data futura, chamada repetida, chamada incompleta), hash da senha, login, acesso por perfil e proteção contra scripts digitados (XSS).
 
 ### Produção
 
@@ -109,10 +130,12 @@ Copie `.env.example`, preencha as variáveis no serviço de hospedagem (nunca no
 ## Situação do desenvolvimento
 
 - [x] Estrutura do projeto, modelo de dados e regras de negócio com testes
-- [ ] Tela de chamada (RF01) com funcionamento offline
-- [ ] Tela de alertas e relatório mensal (RF02 e RF03)
-- [ ] Controle de acesso por perfil nas telas
-- [ ] Cadastro de crianças (RF04)
+- [x] Login e menu de turmas
+- [x] Tela de chamada (RF01)
+- [x] Tela de alertas (RF02) e relatório mensal (RF03)
+- [x] Controle de acesso por perfil, verificado no servidor
+- [ ] Funcionamento offline da chamada (Service Worker e IndexedDB)
+- [ ] Tela própria de cadastro de crianças (RF04); por enquanto, pelo painel `/admin/`
 - [ ] Publicação e validação com o Circo Social Grajaú
 
 Dados usados em testes e demonstrações são **fictícios**.
