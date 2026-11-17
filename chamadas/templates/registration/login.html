@@ -5,9 +5,9 @@
 {% block conteudo %}
 <form method="post">
   {% csrf_token %}
-  {% if form.errors %}
-    <div class="msg error" role="alert">✗ Usuário ou senha inválidos. Tente de novo.</div>
-  {% endif %}
+  {% for erro in form.non_field_errors %}
+    <div class="msg error" role="alert">✗ {{ erro }}</div>
+  {% endfor %}
   <label for="id_username">Usuário</label>
   <input type="text" name="username" id="id_username" autocomplete="username" required autofocus>
   <label for="id_password">Senha</label>

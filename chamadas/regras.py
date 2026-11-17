@@ -16,29 +16,48 @@ from .models import Chamada, Crianca, Presenca
 LIMITE_FALTAS_SEGUIDAS = 3
 
 
-def faltas_seguidas(crianca):
-    """Conta as faltas consecutivas mais recentes da criança, nas chamadas da turma (RF02)."""
-    presencas = (
-        Presenca.objects.filter(crianca=crianca, chamada__turma=crianca.turma)
-        .order_by("-chamada__data")
-        .values_list("presente", flat=True)
-    )
+def _contar_faltas_seguidas(sequencia):
+    """Conta as faltas do início da sequência (da chamada mais recente para a mais antiga).
+
+    Uma presença interrompe a contagem. Função pura, sem acesso ao banco.
+    """
     contagem = 0
-    for presente in presencas:
-        if presente:  # uma presença interrompe a contagem
+    for presente in sequencia:
+        if presente:
             break
         contagem += 1
     return contagem
 
 
+def faltas_seguidas(crianca):
+    """Faltas consecutivas mais recentes de uma criança, nas chamadas da turma (RF02)."""
+    sequencia = (
+        Presenca.objects.filter(crianca=crianca, chamada__turma=crianca.turma)
+        .order_by("-chamada__data")
+        .values_list("presente", flat=True)
+    )
+    return _contar_faltas_seguidas(sequencia)
+
+
 def criancas_em_alerta(turma, limite=LIMITE_FALTAS_SEGUIDAS):
-    """Lista (criança, nº de faltas seguidas) com faltas seguidas >= limite (RF02)."""
-    resultado = []
-    for crianca in turma.criancas.filter(ativa=True):
-        total = faltas_seguidas(crianca)
-        if total >= limite:
-            resultado.append((crianca, total))
-    return resultado
+    """Lista (criança, nº de faltas seguidas) com faltas seguidas >= limite (RF02).
+
+    Busca todas as presenças da turma em UMA consulta, já ordenadas por criança e data,
+    em vez de uma consulta por criança (evita o problema N+1).
+    """
+    linhas = (
+        Presenca.objects.filter(chamada__turma=turma, crianca__turma=turma, crianca__ativa=True)
+        .order_by("crianca_id", "-chamada__data")
+        .values_list("crianca_id", "presente")
+    )
+    sequencias = {}
+    for crianca_id, presente in linhas:
+        sequencias.setdefault(crianca_id, []).append(presente)
+
+    totais = {cid: _contar_faltas_seguidas(seq) for cid, seq in sequencias.items()}
+    ids = [cid for cid, total in totais.items() if total >= limite]
+    criancas = Crianca.objects.in_bulk(ids)
+    return sorted(((criancas[cid], totais[cid]) for cid in ids), key=lambda par: par[0].nome)
 
 
 def relatorio_mensal(turma, ano, mes):

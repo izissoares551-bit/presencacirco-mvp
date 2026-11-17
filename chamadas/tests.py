@@ -150,3 +150,71 @@ class TelasEAcessoTeste(TestCase):
         resposta = self.client.get(f"/chamada/{self.turma.id}/")
         self.assertNotContains(resposta, "<script>alert(1)</script>")
         self.assertContains(resposta, "&lt;script&gt;alert(1)&lt;/script&gt;")
+
+
+class RevisaoDesempenhoESegurancaTeste(TestCase):
+    """Testes das melhorias da revisão: consulta única dos alertas, bloqueio de login e validação."""
+
+    def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()
+        self.usuaria = get_user_model().objects.create_user("educadora.teste", password="senha-forte-123")
+        self.turma = Turma.objects.create(nome="Turma Manhã", dia_horario="Seg e Qua, 9h")
+
+    def test_alertas_usam_numero_fixo_de_consultas(self):
+        for i in range(10):
+            crianca = Crianca.objects.create(
+                nome=f"Criança {chr(65 + i)}", data_nascimento=date(2015, 1, 1),
+                telefone_responsavel="11999990000", turma=self.turma,
+            )
+            for dia in (1, 5, 7):
+                chamada, _ = Chamada.objects.get_or_create(
+                    turma=self.turma, data=date(2026, 10, dia), defaults={"registrada_por": self.usuaria}
+                )
+                Presenca.objects.create(chamada=chamada, crianca=crianca, presente=False)
+        with self.assertNumQueries(2):  # 1 para as presenças + 1 para buscar as crianças
+            alertas = criancas_em_alerta(self.turma)
+        self.assertEqual(len(alertas), 10)
+
+    def test_login_bloqueado_apos_cinco_tentativas_erradas(self):
+        for _ in range(5):
+            resposta = self.client.post("/entrar/", {"username": "educadora.teste", "password": "errada"})
+            self.assertContains(resposta, "Usuário ou senha inválidos")
+        resposta = self.client.post("/entrar/", {"username": "educadora.teste", "password": "senha-forte-123"})
+        self.assertContains(resposta, "Muitas tentativas erradas")
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_login_certo_zera_as_tentativas(self):
+        for _ in range(4):
+            self.client.post("/entrar/", {"username": "educadora.teste", "password": "errada"})
+        resposta = self.client.post("/entrar/", {"username": "educadora.teste", "password": "senha-forte-123"})
+        self.assertRedirects(resposta, "/")
+
+    def test_nome_com_simbolos_e_telefone_invalido_sao_recusados(self):
+        crianca = Crianca(
+            nome="<script>alert(1)</script>", data_nascimento=date(2015, 1, 1),
+            telefone_responsavel="abc", turma=self.turma,
+        )
+        with self.assertRaises(ValidationError) as erro:
+            crianca.full_clean()
+        self.assertIn("nome", erro.exception.message_dict)
+        self.assertIn("telefone_responsavel", erro.exception.message_dict)
+
+    def test_nome_com_acento_e_apostrofo_e_aceito(self):
+        crianca = Crianca(
+            nome="João D'Ávila-Souza", data_nascimento=date(2015, 1, 1),
+            telefone_responsavel="11987654321", turma=self.turma,
+        )
+        crianca.full_clean()
+
+
+class AcessibilidadeTeste(TestCase):
+    """RNF04: botões de letra maior e alto contraste presentes em todas as telas."""
+
+    def test_botoes_de_acessibilidade_na_tela_de_login(self):
+        resposta = self.client.get("/entrar/")
+        self.assertContains(resposta, 'data-preferencia="letra-grande"')
+        self.assertContains(resposta, 'data-preferencia="alto-contraste"')
+        self.assertContains(resposta, 'aria-pressed="false"', count=2)
+        self.assertContains(resposta, '<label for="id_username">Usuário</label>', html=True)
