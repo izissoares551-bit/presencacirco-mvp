@@ -1,0 +1,23 @@
+# Blueprint do Render: descreve como publicar o PresençaCirco na nuvem.
+services:
+  - type: web
+    name: presencacirco
+    runtime: python
+    plan: free
+    region: virginia
+    branch: main
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: python manage.py migrate --noinput && python manage.py carregar_demo && gunicorn config.wsgi --bind 0.0.0.0:$PORT
+    healthCheckPath: /saude/
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: DJANGO_DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_ALLOWED_HOSTS
+        value: localhost
+      - key: DEMO_SENHA
+        sync: false

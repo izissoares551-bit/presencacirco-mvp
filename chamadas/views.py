@@ -3,6 +3,8 @@
 from datetime import date
 
 from django.contrib import messages
+from django.db import connection
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
@@ -91,3 +93,13 @@ def relatorio(request):
         "chamadas/relatorio.html",
         {"turmas": turmas, "turma": turma, "mes": f"{ano:04d}-{mes:02d}", "dados": dados, "alerta_ids": alerta_ids},
     )
+
+
+def saude(request):
+    """Verificação de saúde para o monitoramento: confirma que a aplicação e o banco respondem."""
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        return JsonResponse({"status": "ok", "banco": "ok"})
+    except Exception:
+        return JsonResponse({"status": "erro", "banco": "indisponivel"}, status=503)

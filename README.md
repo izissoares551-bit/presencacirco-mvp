@@ -123,11 +123,25 @@ coverage report
 
 Os testes também rodam automaticamente no GitHub Actions a cada envio (aba **Actions**). Cobertura atual: **94%** do código da aplicação (migrações e o próprio arquivo de testes não entram na conta).
 
-São 21 testes automáticos: regras de faltas seguidas e relatório, validação da chamada (data futura, chamada repetida, chamada incompleta), hash da senha, login, bloqueio após 5 tentativas, validação de nome e telefone, número de consultas dos alertas, acesso por perfil e proteção contra scripts digitados (XSS).
+São 24 testes automáticos: regras de faltas seguidas e relatório, validação da chamada (data futura, chamada repetida, chamada incompleta), hash da senha, login, bloqueio após 5 tentativas, validação de nome e telefone, número de consultas dos alertas, acesso por perfil e proteção contra scripts digitados (XSS).
 
-### Produção
+### Produção (deploy no Render)
 
-Copie `.env.example`, preencha as variáveis no serviço de hospedagem (nunca no código) e defina `DJANGO_DEBUG=False`.
+O arquivo `render.yaml` descreve a publicação no [Render](https://render.com) (plano gratuito):
+
+1. No Render, **New → Blueprint** e escolha este repositório.
+2. Informe `DEMO_SENHA` (senha dos usuários de teste, com 8 ou mais caracteres). A `DJANGO_SECRET_KEY` é gerada automaticamente.
+3. A cada envio na `main`, o Render roda `pip install`, `collectstatic`, `migrate`, carrega os dados fictícios de demonstração (`carregar_demo`) e inicia o Gunicorn. Os arquivos estáticos são entregues pelo WhiteNoise.
+
+Usuários de demonstração: `educadora.teste` (educador) e `coordenacao.teste` (coordenação).
+
+**Limitação conhecida:** no plano gratuito o banco SQLite fica no disco temporário do servidor, então os dados voltam ao estado de demonstração a cada nova publicação ou reinício, e a primeira abertura depois de um tempo parado pode levar até 1 minuto. Para uso real, basta criar um PostgreSQL gerenciado e informar as variáveis `POSTGRES_*` (veja `.env.example`).
+
+### Monitoramento
+
+- `GET /saude/` responde `{"status": "ok", "banco": "ok"}` quando a aplicação e o banco estão funcionando (ou HTTP 503 se o banco falhar). O Render usa esse endereço como *health check*.
+- O workflow `.github/workflows/monitoramento.yml` acessa `/saude/` a cada 15 minutos; se o site não responder, a execução fica vermelha (DOWN) na aba **Actions** e o GitHub envia e-mail de falha.
+- Erros da aplicação aparecem nos logs do painel do Render.
 
 ## Segurança
 
@@ -148,6 +162,7 @@ Copie `.env.example`, preencha as variáveis no serviço de hospedagem (nunca no
 - [x] Controle de acesso por perfil, verificado no servidor
 - [ ] Funcionamento offline da chamada (Service Worker e IndexedDB)
 - [ ] Tela própria de cadastro de crianças (RF04); por enquanto, pelo painel `/admin/`
-- [ ] Publicação e validação com o Circo Social Grajaú
+- [x] Publicação na nuvem (Render) e monitoramento
+- [ ] Validação com o Circo Social Grajaú
 
 Dados usados em testes e demonstrações são **fictícios**.

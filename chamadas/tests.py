@@ -218,3 +218,28 @@ class AcessibilidadeTeste(TestCase):
         self.assertContains(resposta, 'data-preferencia="alto-contraste"')
         self.assertContains(resposta, 'aria-pressed="false"', count=2)
         self.assertContains(resposta, '<label for="id_username">Usuário</label>', html=True)
+
+
+class ProducaoTeste(TestCase):
+    """Verificação de saúde (monitoramento) e carga dos dados fictícios de demonstração."""
+
+    def test_saude_responde_ok_sem_login(self):
+        resposta = self.client.get("/saude/")
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json(), {"status": "ok", "banco": "ok"})
+
+    def test_carregar_demo_cria_dados_sem_duplicar(self):
+        import os
+        from unittest import mock
+
+        from django.core.management import call_command
+
+        with mock.patch.dict(os.environ, {"DEMO_SENHA": "senha-de-teste-123"}):
+            call_command("carregar_demo", stdout=open(os.devnull, "w"))
+            call_command("carregar_demo", stdout=open(os.devnull, "w"))
+        self.assertEqual(Turma.objects.count(), 2)
+        self.assertEqual(Crianca.objects.count(), 11)
+        self.assertEqual(Chamada.objects.count(), 5)
+        educadora = get_user_model().objects.get(username="educadora.teste")
+        self.assertTrue(educadora.check_password("senha-de-teste-123"))
+        self.assertEqual([c.nome for c, _ in criancas_em_alerta(Turma.objects.get(nome="Turma Manhã"))], ["Felipe"])

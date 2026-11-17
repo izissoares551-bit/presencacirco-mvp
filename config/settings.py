@@ -13,6 +13,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "chave-apenas-para-desenvolvimento-local")
 DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+CSRF_TRUSTED_ORIGINS = []
+
+# Render (nuvem): o endereço público é informado pela própria plataforma.
+RENDER_HOST = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_HOST:
+    ALLOWED_HOSTS.append(RENDER_HOST)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_HOST}")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -26,6 +33,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # entrega CSS e arquivos estáticos em produção
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -88,6 +96,14 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        if not DEBUG
+        else "django.contrib.staticfiles.storage.StaticFilesStorage"
+    },
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -107,3 +123,13 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")  # HTTPS termina no proxy do Render
+    SECURE_REDIRECT_EXEMPT = [r"^saude/$"]
+
+# Registros (logs) de erros no console, visíveis no painel do Render.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": "WARNING"},
+}
