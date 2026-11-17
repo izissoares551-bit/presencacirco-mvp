@@ -113,6 +113,16 @@ O protótipo das telas está em [`docs/prototipo`](docs/prototipo).
 python manage.py test
 ```
 
+Com cobertura:
+
+```bash
+pip install -r requirements-dev.txt
+coverage run manage.py test
+coverage report
+```
+
+Os testes também rodam automaticamente no GitHub Actions a cada envio (aba **Actions**). Cobertura atual: **94%** do código da aplicação (migrações e o próprio arquivo de testes não entram na conta).
+
 São 21 testes automáticos: regras de faltas seguidas e relatório, validação da chamada (data futura, chamada repetida, chamada incompleta), hash da senha, login, bloqueio após 5 tentativas, validação de nome e telefone, número de consultas dos alertas, acesso por perfil e proteção contra scripts digitados (XSS).
 
 ### Produção
