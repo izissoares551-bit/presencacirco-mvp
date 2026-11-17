@@ -113,7 +113,7 @@ O protótipo das telas está em [`docs/prototipo`](docs/prototipo).
 python manage.py test
 ```
 
-São 16 testes automáticos: regras de faltas seguidas e relatório, validação da chamada (data futura, chamada repetida, chamada incompleta), hash da senha, login, acesso por perfil e proteção contra scripts digitados (XSS).
+São 21 testes automáticos: regras de faltas seguidas e relatório, validação da chamada (data futura, chamada repetida, chamada incompleta), hash da senha, login, bloqueio após 5 tentativas, validação de nome e telefone, número de consultas dos alertas, acesso por perfil e proteção contra scripts digitados (XSS).
 
 ### Produção
 
@@ -123,6 +123,8 @@ Copie `.env.example`, preencha as variáveis no serviço de hospedagem (nunca no
 
 - Login obrigatório e perfis por grupo (educador e coordenação)
 - Senhas guardadas como hash PBKDF2-SHA256, com no mínimo 8 caracteres
+- Login bloqueado por 15 minutos após 5 tentativas erradas, com mensagens genéricas
+- Nome e telefone validados no servidor por formato (expressões regulares)
 - Cookies de sessão HttpOnly, SameSite e Secure (em produção), além de proteção CSRF
 - Acesso ao banco só pelo ORM (consultas parametrizadas) e escape automático nos templates
 - Segredos em variáveis de ambiente

@@ -9,8 +9,20 @@ import uuid
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MinLengthValidator, RegexValidator
 from django.db import models
 from django.utils import timezone
+
+
+# Validação no servidor (RNF02): aceita só o formato esperado, recusando símbolos como < > ; usados em ataques.
+validar_nome = RegexValidator(
+    r"^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$",
+    "Use apenas letras, espaços, hífen e apóstrofo no nome.",
+)
+validar_telefone = RegexValidator(
+    r"^\d{10,11}$",
+    "Informe o telefone com DDD, só números (10 ou 11 dígitos).",
+)
 
 
 class Turma(models.Model):
@@ -34,9 +46,9 @@ class Turma(models.Model):
 
 
 class Crianca(models.Model):
-    nome = models.CharField(max_length=120)
+    nome = models.CharField(max_length=120, validators=[MinLengthValidator(2), validar_nome])
     data_nascimento = models.DateField()
-    telefone_responsavel = models.CharField(max_length=20)
+    telefone_responsavel = models.CharField(max_length=11, validators=[validar_telefone])
     turma = models.ForeignKey(Turma, on_delete=models.PROTECT, related_name="criancas")
     ativa = models.BooleanField(default=True)
 
