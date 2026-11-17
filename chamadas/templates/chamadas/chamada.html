@@ -1,0 +1,44 @@
+{% extends "chamadas/base.html" %}
+{% block titulo %}Chamada – {{ turma.nome }}{% endblock %}
+{% block cabecalho %}Chamada – {{ turma.nome }}{% endblock %}
+{% block subtitulo %}Marque presença ou falta de cada criança{% endblock %}
+{% block conteudo %}
+<form method="post" id="form-chamada">
+  {% csrf_token %}
+  <label for="data">Data da oficina</label>
+  <input type="date" name="data" id="data" value="{{ hoje|date:'Y-m-d' }}" max="{{ hoje|date:'Y-m-d' }}" required>
+
+  {% for c in criancas %}
+    <div class="crianca">
+      <fieldset>
+        <legend>{{ c.nome }}</legend>
+        <div class="opcoes">
+          <label><input type="radio" class="presente" name="crianca_{{ c.id }}" value="p"><span>Presente ✓</span></label>
+          <label><input type="radio" class="falta" name="crianca_{{ c.id }}" value="f"><span>Falta ✗</span></label>
+        </div>
+      </fieldset>
+    </div>
+  {% empty %}
+    <p>Esta turma ainda não tem crianças ativas.</p>
+  {% endfor %}
+
+  <div class="rodape">
+    <p class="contador" id="contador" aria-live="polite">{{ criancas|length }} crianças na turma</p>
+    <button type="submit" class="btn primario">Salvar chamada</button>
+    <a class="btn secundario" href="{% url 'menu' %}">Voltar ao menu</a>
+  </div>
+</form>
+<script>
+  // Atualiza o contador "X de N marcadas" a cada toque.
+  (function () {
+    var form = document.getElementById("form-chamada");
+    var total = {{ criancas|length }};
+    function atualizar() {
+      var marcadas = form.querySelectorAll("input[type=radio]:checked").length;
+      document.getElementById("contador").textContent = marcadas + " de " + total + " marcadas";
+    }
+    form.addEventListener("change", atualizar);
+    atualizar();
+  })();
+</script>
+{% endblock %}

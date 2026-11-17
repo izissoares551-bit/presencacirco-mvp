@@ -1,0 +1,19 @@
+{% extends "chamadas/base.html" %}
+{% block cabecalho %}Menu inicial{% endblock %}
+{% block subtitulo %}Escolha a turma para fazer a chamada{% endblock %}
+{% block conteudo %}
+<p>Usuário: {{ user.username }} ({% if coordenacao %}coordenação{% else %}educador{% endif %})</p>
+<h2>Turmas</h2>
+{% for turma in turmas %}
+  <a class="turma" href="{% url 'chamada' turma.id %}">
+    <span><strong>{{ turma.nome }}</strong>{{ turma.dia_horario }}</span>
+    <span>Fazer chamada ›</span>
+  </a>
+{% empty %}
+  <p>Nenhuma turma ativa cadastrada.</p>
+{% endfor %}
+<form method="post" action="{% url 'logout' %}">
+  {% csrf_token %}
+  <button type="submit" class="btn secundario">Sair</button>
+</form>
+{% endblock %}

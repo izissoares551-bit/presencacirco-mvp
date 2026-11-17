@@ -1,0 +1,18 @@
+{% extends "chamadas/base.html" %}
+{% block titulo %}Entrar – PresençaCirco{% endblock %}
+{% block cabecalho %}Entrar{% endblock %}
+{% block subtitulo %}Acesse com seu usuário e senha{% endblock %}
+{% block conteudo %}
+<form method="post">
+  {% csrf_token %}
+  {% if form.errors %}
+    <div class="msg error" role="alert">✗ Usuário ou senha inválidos. Tente de novo.</div>
+  {% endif %}
+  <label for="id_username">Usuário</label>
+  <input type="text" name="username" id="id_username" autocomplete="username" required autofocus>
+  <label for="id_password">Senha</label>
+  <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+  <button type="submit" class="btn primario">Entrar</button>
+</form>
+<p>Esqueceu a senha? Fale com a coordenação do Circo Social.</p>
+{% endblock %}

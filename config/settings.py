@@ -91,7 +91,9 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-LOGIN_URL = "/admin/login/"
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "menu"
+LOGOUT_REDIRECT_URL = "login"
 
 # RNF01 e RNF02: sessão protegida e cabeçalhos de segurança.
 SESSION_COOKIE_HTTPONLY = True

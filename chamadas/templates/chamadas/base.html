@@ -1,0 +1,24 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}PresençaCirco{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'chamadas/estilo.css' %}">
+</head>
+<body>
+  <header class="topo">
+    <div class="marca">PresençaCirco · Circo Social Grajaú</div>
+    <h1>{% block cabecalho %}PresençaCirco{% endblock %}</h1>
+    <p>{% block subtitulo %}{% endblock %}</p>
+  </header>
+  <main>
+    {% for mensagem in messages %}
+      <div class="msg {{ mensagem.tags }}" role="{% if mensagem.tags == 'error' %}alert{% else %}status{% endif %}">
+        {% if mensagem.tags == 'error' %}✗{% else %}✓{% endif %} {{ mensagem }}
+      </div>
+    {% endfor %}
+    {% block conteudo %}{% endblock %}
+  </main>
+</body>
+</html>
